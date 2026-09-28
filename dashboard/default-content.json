@@ -1,0 +1,99 @@
+{
+  "site": {
+    "brand": "My Instant Midwife",
+    "tagline": "Instant Care for Life's Biggest Journey",
+    "primaryCta": "CONTACT ME",
+    "primaryCtaUrl": "/contact"
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "WELCOME TO MY INSTANT MIDWIFE",
+      "title": "Instant Care for Life's Biggest Journey",
+      "body": "Connecting women and families with experienced midwives for expert advice, care and support from pregnancy to early parenthood, all delivered via WhatsApp, straight to your phone.",
+      "image": "/site-images/bg image.png"
+    },
+    "who": {
+      "title": "Who I Am",
+      "subtitle": "Your Instant Midwife",
+      "name": "Tasmin",
+      "body": "With over 18 years of midwifery experience, I bring specialist expertise in hypnobirthing, complementary therapies and parent education — so you're supported by a midwife who truly understands the full picture of pregnancy.",
+      "image": "/site-images/testimonial3.png"
+    }
+  },
+  "packages": [
+    {
+      "id": "core",
+      "title": "MIM Core Support",
+      "price": "£79.99",
+      "period": "/month",
+      "note": "no minimum term, cancel anytime",
+      "image": "/site-images/offer1.png",
+      "features": [
+        "A foundational package giving you consistent midwife support throughout your pregnancy.",
+        "Daily Email — A gentle daily touchpoint designed to steady anxious thoughts, answer common questions, and offer reassurance you can trust.",
+        "WhatsApp Access — Direct access to a midwife via WhatsApp, Monday-Friday 9am-5pm.",
+        "Monthly Call — One scheduled 1-hour call per month within service hours."
+      ]
+    },
+    {
+      "id": "signature",
+      "title": "MIM Signature Support",
+      "price": "£149.99",
+      "period": "/month",
+      "note": "no minimum term, cancel anytime",
+      "image": "/site-images/signature-support.jpeg",
+      "features": [
+        "Enhanced support with extended midwife access for those who want more reassurance, more often.",
+        "Daily Email — A gentle daily touchpoint designed to steady anxious thoughts, answer common questions, and offer reassurance you can trust.",
+        "WhatsApp Access — Direct access to a midwife via WhatsApp, seven days a week, 7am-11pm.",
+        "Monthly Calls — Two scheduled 1-hour calls per month within service hours."
+      ]
+    },
+    {
+      "id": "sustained",
+      "title": "MIM Sustained Support",
+      "price": "£1,399",
+      "period": "one payment",
+      "note": "10 months continuous care (equivalent to £140/month) • available from booking around 6-8 weeks of pregnancy",
+      "image": "/site-images/offer3.png",
+      "features": [
+        "Complete continuity of care from early pregnancy through to the postpartum period.",
+        "Full Signature-Level Support — Everything included in MIM Signature Support.",
+        "Antenatal Education — Structured education through downloadable resources.",
+        "Extended Postnatal Support — Support through infant feeding, recovery, and early parenthood."
+      ]
+    }
+  ],
+  "courses": [
+    {
+      "id": "biomechanics",
+      "title": "Biomechanics in Labour",
+      "subtitle": "How Your Body Moves, How Your Baby Navigates",
+      "price": "£19.99",
+      "image": "/site-images/yoga.jpg",
+      "body": "Birth is a mechanical event — your baby navigates your pelvis through a series of movements. This course reveals the three sections of the pelvis, rebozo techniques, daily habits from 34 weeks, and what to do at each stage of labour."
+    },
+    {
+      "id": "babymoon",
+      "title": "The Baby Moon",
+      "subtitle": "40 Days of Postpartum Nourishment",
+      "price": "£19.99",
+      "image": "/site-images/yoga2.png",
+      "body": "The first 40 days after birth are sacred in cultures worldwide — a time for retreat, warmth, nourishment, and deep restoration."
+    },
+    {
+      "id": "hypnobirthing",
+      "title": "Hypnobirthing",
+      "subtitle": "A Complete Guide for You and Your Birth Partner",
+      "price": "£19.99",
+      "image": "/site-images/yog.jpg",
+      "body": "Evidence-based techniques to break the fear-tension-pain cycle. Learn breathing, relaxation, partner support, birth preferences, and fourth-trimester preparation."
+    }
+  ],
+  "footer": {
+    "questionTitle": "Have any questions?",
+    "questionBody": "Get in touch to find out more about our services and how we can support you",
+    "facebookUrl": "https://www.facebook.com/share/g/1GVNyi4eY6/",
+    "instagramUrl": "https://www.instagram.com/mim_myinstantmidwife?igsh=MW0wN25hdjE2aXYxZw=="
+  }
+}

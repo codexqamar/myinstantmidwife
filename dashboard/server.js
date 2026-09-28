@@ -14,6 +14,7 @@ const backupDir = path.join(dataDir, 'backups');
 const uploadsDir = path.join(rootDir, 'uploads');
 const contentPath = path.join(dataDir, 'content.json');
 const settingsPath = path.join(dataDir, 'settings.json');
+const defaultContentPath = path.join(rootDir, 'default-content.json');
 
 const defaultAdminUser = process.env.ADMIN_USERNAME || 'admin';
 const defaultAdminPassword = process.env.ADMIN_PASSWORD || 'change-this-password';
@@ -48,6 +49,12 @@ app.use('/api/public-content', (req, res, next) => {
 });
 
 function readContent() {
+  if (!fs.existsSync(contentPath)) {
+    const defaultContent = JSON.parse(fs.readFileSync(defaultContentPath, 'utf8'));
+    writeContent(defaultContent);
+    return defaultContent;
+  }
+
   return JSON.parse(fs.readFileSync(contentPath, 'utf8'));
 }
 
