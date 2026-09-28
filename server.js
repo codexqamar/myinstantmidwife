@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const fs = require('fs');
 const path = require('path');
 
 require('dotenv').config();
@@ -75,6 +76,55 @@ const subscriptionPlans = {
         tags: ['subscriber', 'plan-sustained-support']
     }
 };
+
+const dashboardContentPath = path.join(__dirname, 'dashboard', 'data', 'content.json');
+
+function readDashboardContent() {
+    try {
+        return JSON.parse(fs.readFileSync(dashboardContentPath, 'utf8'));
+    } catch (error) {
+        return null;
+    }
+}
+
+function parseGbpAmount(price) {
+    const numeric = String(price || '').replace(/[^0-9.]/g, '');
+    if (!numeric) return null;
+    const amount = Math.round(Number(numeric) * 100);
+    return Number.isFinite(amount) && amount > 0 ? amount : null;
+}
+
+function applyManagedCourse(courseId, course) {
+    const managed = readDashboardContent();
+    const managedCourse = managed && Array.isArray(managed.courses)
+        ? managed.courses.find(item => item.id === courseId)
+        : null;
+    if (!managedCourse) return course;
+
+    const amount = parseGbpAmount(managedCourse.price);
+    return {
+        ...course,
+        title: managedCourse.title || course.title,
+        amount: amount || course.amount
+    };
+}
+
+function applyManagedPlan(planId, plan) {
+    const managed = readDashboardContent();
+    const managedPlan = managed && Array.isArray(managed.packages)
+        ? managed.packages.find(item => item.id === planId)
+        : null;
+    if (!managedPlan) return plan;
+
+    const amount = parseGbpAmount(managedPlan.price);
+    const priceLabel = [managedPlan.price, managedPlan.period].filter(Boolean).join(' ');
+    return {
+        ...plan,
+        title: managedPlan.title || plan.title,
+        priceLabel: priceLabel || plan.priceLabel,
+        amount: amount || plan.amount
+    };
+}
 
 app.post('/api/stripe-webhook', express.raw({ type: 'application/json' }), async (req, res) => {
     if (!stripe || !stripeWebhookSecret) {
@@ -171,7 +221,7 @@ function getCourseOrSendError(courseId, res) {
         res.status(400).json({ error: 'Invalid course selected.' });
         return null;
     }
-    return course;
+    return applyManagedCourse(courseId, course);
 }
 
 function requireStripe(res) {
@@ -337,7 +387,7 @@ function getSubscriptionPlanOrSendError(planId, res) {
         res.status(400).json({ error: 'Invalid subscription plan selected.' });
         return null;
     }
-    return plan;
+    return applyManagedPlan(planId, plan);
 }
 
 function formatCustomerName(customer = {}) {

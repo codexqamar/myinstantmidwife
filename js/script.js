@@ -383,6 +383,10 @@ function downloadActualPDF(pdfFileName, displayName) {
 }
 
 function getPdfMetaByType(pdfType) {
+    if (window.MIM_MANAGED_COURSES && window.MIM_MANAGED_COURSES[pdfType]) {
+        return window.MIM_MANAGED_COURSES[pdfType];
+    }
+
     if (pdfType === 'biomechanics') {
         return { pdfType, title: 'Biomechanics in Labour', tagline: 'How Your Body Moves, How Your Baby Navigates', price: '£19.99', imagePath: '../images/yoga.jpg', fileName: 'MIM-Biomechanics-in-Labour.pdf', downloadName: 'MIM_Biomechanics_in_Labour.pdf' };
     }
@@ -1048,3 +1052,281 @@ faqItems.forEach(item => {
    INITIALISATION LOG
    ========================================================== */
 console.log('My Instant Midwife - Website Loaded Successfully');
+
+/* ==========================================================
+   DASHBOARD CONTENT HYDRATION
+   Reads optional dashboard-managed content. Hardcoded HTML stays
+   as fallback if dashboard feed is unavailable.
+   ========================================================== */
+
+(function () {
+    const courseFiles = {
+        biomechanics: {
+            fileName: 'MIM-Biomechanics-in-Labour.pdf',
+            downloadName: 'MIM_Biomechanics_in_Labour.pdf'
+        },
+        babymoon: {
+            fileName: 'MIM-Baby-Moon-40-Days.pdf',
+            downloadName: 'MIM_Baby_Moon_40_Days.pdf'
+        },
+        hypnobirthing: {
+            fileName: 'MIM-Hypnobirthing-Course.pdf',
+            downloadName: 'MIM_Hypnobirthing_Course.pdf'
+        }
+    };
+
+    function dashboardOrigins() {
+        if (window.MIM_DASHBOARD_CONTENT_URL) return [window.MIM_DASHBOARD_CONTENT_URL];
+
+        const urls = [];
+        if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+            urls.push('http://localhost:3100/api/public-content');
+        } else {
+            const host = location.hostname.replace(/^www\./, '');
+            urls.push(`${location.protocol}//dashboard.${host}/api/public-content`);
+        }
+        urls.push('/api/public-content');
+        return [...new Set(urls)];
+    }
+
+    async function fetchManagedContent() {
+        for (const url of dashboardOrigins()) {
+            try {
+                const content = await requestJson(url, 2500);
+                return { content, feedUrl: new URL(url, location.href) };
+            } catch (error) {
+                try {
+                    const content = await requestScript(url);
+                    return { content, feedUrl: new URL(url, location.href) };
+                } catch (scriptError) {
+                    // Keep trying next source.
+                }
+            }
+        }
+        return null;
+    }
+
+    function requestJson(url, timeoutMs) {
+        if (typeof fetch === 'function' && typeof AbortController === 'function') {
+            return new Promise((resolve, reject) => {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), timeoutMs);
+                fetch(url, { signal: controller.signal })
+                    .then(response => {
+                        clearTimeout(timeout);
+                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                        return response.json();
+                    })
+                    .then(resolve)
+                    .catch(error => {
+                        clearTimeout(timeout);
+                        reject(error);
+                    });
+            });
+        }
+
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', url, true);
+            xhr.timeout = timeoutMs;
+            xhr.onload = () => {
+                if (xhr.status < 200 || xhr.status >= 300) {
+                    reject(new Error(`HTTP ${xhr.status}`));
+                    return;
+                }
+                try {
+                    resolve(JSON.parse(xhr.responseText));
+                } catch (error) {
+                    reject(error);
+                }
+            };
+            xhr.onerror = () => reject(new Error('Network error'));
+            xhr.ontimeout = () => reject(new Error('Request timed out'));
+            xhr.send();
+        });
+    }
+
+    function requestScript(url) {
+        return new Promise((resolve, reject) => {
+            const feedUrl = new URL(url, location.href);
+            feedUrl.pathname = feedUrl.pathname.replace(/\/api\/public-content$/, '/api/public-content.js');
+            window.MIM_DASHBOARD_CONTENT = null;
+
+            const script = document.createElement('script');
+            script.src = feedUrl.href;
+            script.async = true;
+            script.onload = () => {
+                script.remove();
+                if (window.MIM_DASHBOARD_CONTENT) {
+                    resolve(window.MIM_DASHBOARD_CONTENT);
+                } else {
+                    reject(new Error('Dashboard script did not provide content.'));
+                }
+            };
+            script.onerror = () => {
+                script.remove();
+                reject(new Error('Dashboard script failed.'));
+            };
+            document.head.appendChild(script);
+        });
+    }
+
+    function setText(selector, value) {
+        const el = document.querySelector(selector);
+        if (el && value) el.textContent = value;
+    }
+
+    function setImage(selector, src, feedUrl) {
+        const el = document.querySelector(selector);
+        if (!el || !src) return;
+        el.src = resolveImage(src, feedUrl);
+    }
+
+    function escapeHtml(value) {
+        return String(value || '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;');
+    }
+
+    function setBackground(selector, src, feedUrl) {
+        const el = document.querySelector(selector);
+        if (!el || !src) return;
+        el.style.backgroundImage = `url("${resolveImage(src, feedUrl)}")`;
+    }
+
+    function resolveImage(src, feedUrl) {
+        if (/^https?:\/\//i.test(src)) return src;
+        if (src.startsWith('/site-images/')) return `/images/${src.replace('/site-images/', '')}`;
+        if (src.startsWith('/uploads/')) return new URL(src, feedUrl.origin).href;
+        return src;
+    }
+
+    function iconHtml(className) {
+        return `<i class="${className}"></i>`;
+    }
+
+    function hydrateHero(content, feedUrl) {
+        if (!content.home || !content.home.hero) return;
+        const hero = content.home.hero;
+        setText('.hero-welcome', hero.eyebrow);
+        setText('.hero-title', hero.title);
+        setText('.hero-desc', hero.body);
+        setImage('.hero-img img', hero.image, feedUrl);
+        const innerHero = document.querySelector('.inner-hero');
+        if (innerHero && hero.image) {
+            innerHero.style.backgroundImage = `url("${resolveImage(hero.image, feedUrl)}")`;
+        }
+    }
+
+    function hydrateWho(content, feedUrl) {
+        if (!content.home || !content.home.who) return;
+        const who = content.home.who;
+        setText('.who-right h2', who.title);
+        setText('.who-right h3', who.subtitle);
+        setText('.who-right .midwife-names', who.name);
+        setText('.who-right p', who.body);
+        setImage('.who-left img', who.image, feedUrl);
+
+        setText('.who-right-about h2', who.title);
+        setText('.who-right-about h3', who.subtitle);
+        setText('.who-right-about p strong', who.name);
+        setImage('.who-left-about img', who.image, feedUrl);
+    }
+
+    function hydratePackages(content, feedUrl) {
+        if (!Array.isArray(content.packages)) return;
+
+        content.packages.forEach((plan, index) => {
+            const card = document.querySelectorAll('.package-card')[index];
+            if (!card) return;
+
+            const image = card.querySelector('.card-img');
+            const title = card.querySelector('.card-title');
+            const list = card.querySelector('.check-list');
+            const price = card.querySelector('.price');
+            const note = card.querySelector('.price-note');
+
+            if (image && plan.image) image.style.backgroundImage = `url("${resolveImage(plan.image, feedUrl)}")`;
+            if (title && plan.title) title.textContent = plan.title;
+            if (list && Array.isArray(plan.features)) {
+                list.innerHTML = plan.features.map(feature => (
+                    `<div class="check-item">${iconHtml('fas fa-check-circle')} ${escapeHtml(feature)}</div>`
+                )).join('');
+            }
+            if (price && plan.price) {
+                price.innerHTML = `${escapeHtml(plan.price)}<span class="price-period">${escapeHtml(plan.period || '')}</span>`;
+            }
+            if (note && plan.note) note.textContent = plan.note;
+
+            if (plan.id && subscriptionPlanMeta[plan.id]) {
+                subscriptionPlanMeta[plan.id].title = plan.title || subscriptionPlanMeta[plan.id].title;
+                subscriptionPlanMeta[plan.id].price = [plan.price, plan.period].filter(Boolean).join(' ');
+                subscriptionPlanMeta[plan.id].imagePath = resolveImage(plan.image, feedUrl);
+                subscriptionPlanMeta[plan.id].tagline = plan.note || subscriptionPlanMeta[plan.id].tagline;
+            }
+        });
+    }
+
+    function hydrateCourses(content, feedUrl) {
+        if (!Array.isArray(content.courses)) return;
+        window.MIM_MANAGED_COURSES = window.MIM_MANAGED_COURSES || {};
+
+        const courseSections = document.querySelectorAll('.birthing-choices, .birthing-choices-white');
+        content.courses.forEach((course, index) => {
+            const section = courseSections[index];
+            const imagePath = resolveImage(course.image, feedUrl);
+            if (section) {
+                setTextIn(section, 'h2', course.title);
+                setTextIn(section, 'h3', course.subtitle);
+                setTextIn(section, '.course-price', course.price);
+                setTextIn(section, 'p', course.body);
+                const img = section.querySelector('img');
+                if (img && course.image) img.src = imagePath;
+            }
+
+            if (course.id && courseFiles[course.id]) {
+                window.MIM_MANAGED_COURSES[course.id] = {
+                    pdfType: course.id,
+                    title: course.title,
+                    tagline: course.subtitle,
+                    price: course.price,
+                    imagePath,
+                    ...courseFiles[course.id]
+                };
+            }
+        });
+    }
+
+    function setTextIn(root, selector, value) {
+        const el = root.querySelector(selector);
+        if (el && value) el.textContent = value;
+    }
+
+    function hydrateFooter(content) {
+        if (!content.footer) return;
+        setText('.questions-text h3', content.footer.questionTitle);
+        setText('.questions-text p', content.footer.questionBody);
+
+        document.querySelectorAll('.social-icons a[aria-label="Facebook"], .social-icons a .fa-facebook-f').forEach(item => {
+            const link = item.closest('a') || item;
+            if (content.footer.facebookUrl) link.href = content.footer.facebookUrl;
+        });
+        document.querySelectorAll('.social-icons a[aria-label="Instagram"], .social-icons a .fa-instagram').forEach(item => {
+            const link = item.closest('a') || item;
+            if (content.footer.instagramUrl) link.href = content.footer.instagramUrl;
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const result = await fetchManagedContent();
+        if (!result || !result.content) return;
+
+        hydrateHero(result.content, result.feedUrl);
+        hydrateWho(result.content, result.feedUrl);
+        hydratePackages(result.content, result.feedUrl);
+        hydrateCourses(result.content, result.feedUrl);
+        hydrateFooter(result.content);
+    });
+})();
