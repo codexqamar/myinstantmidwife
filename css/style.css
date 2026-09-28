@@ -204,6 +204,10 @@ body {
     list-style: none;
 }
 
+.nav-mobile-cta {
+    display: none;
+}
+
 .nav-links li a {
     font-family: 'Albert Sans', sans-serif;
     font-weight: 500;
@@ -258,6 +262,35 @@ body {
     cursor: pointer;
     align-items: center;
     justify-content: center;
+}
+
+.hamburger-icon,
+.hamburger-icon::before,
+.hamburger-icon::after {
+    width: 24px;
+    height: 2px;
+    background: #000000;
+    border-radius: 2px;
+}
+
+.hamburger-icon {
+    position: relative;
+    display: block;
+}
+
+.hamburger-icon::before,
+.hamburger-icon::after {
+    content: "";
+    position: absolute;
+    left: 0;
+}
+
+.hamburger-icon::before {
+    top: -7px;
+}
+
+.hamburger-icon::after {
+    top: 7px;
 }
 
 
@@ -3485,6 +3518,16 @@ body {
         display: none;
     }
 
+    .nav-links.mobile-open .nav-mobile-cta {
+        display: block;
+    }
+
+    .nav-links.mobile-open .nav-mobile-cta .book-now-btn {
+        display: flex;
+        width: fit-content;
+        line-height: normal;
+    }
+
     .homepage {
         padding-top: 100px;
     }
@@ -3868,6 +3911,16 @@ body {
 
     .book-now-btn {
         display: none;
+    }
+
+    .nav-links.mobile-open .nav-mobile-cta {
+        display: block;
+    }
+
+    .nav-links.mobile-open .nav-mobile-cta .book-now-btn {
+        display: flex;
+        width: fit-content;
+        line-height: normal;
     }
 
     .serve-right {

@@ -48,6 +48,8 @@
             <li><a href="/faq" class="${activePage === 'faq' ? 'active' : ''}">FAQ'S</a></li>
             <li><a href="/contact" class="${activePage === 'contact' ? 'active' : ''}">CONTACT ME</a></li>
             <li><a href="/subscription" class="${activePage === 'subscription' ? 'active' : ''}">SUBSCRIPTION</a></li>
+            <li class="nav-mobile-cta"><a href="https://calendly.com/wson-tasmin/60" class="book-now-btn" target="_blank" rel="noopener noreferrer">Schedule a Call <i class="fas fa-arrow-right diag-icon"></i></a></li>
+            <li class="nav-mobile-cta"><a href="/subscription" class="book-now-btn">BOOK NOW <i class="fas fa-arrow-right diag-icon"></i></a></li>
         </ul>
 
         <!-- Search & Book Now CTA -->
@@ -59,7 +61,7 @@
 
         <!-- Mobile Hamburger Button (hidden on desktop) -->
         <button class="mobile-menu-btn" aria-label="Toggle menu">
-            <i class="fas fa-bars"></i>
+            <span class="hamburger-icon" aria-hidden="true"></span>
         </button>
     </nav>
     `;
